@@ -98,12 +98,21 @@ namespace OOOSportProducts
                     }
                     else
                     {
+                        //Image img = Image.FromFile(path + "\\Товар_import\\" + item.ProductImage);
+                        //MemoryStream ms = new MemoryStream();
+                        //img.Save(ms, ImageFormat.Jpeg);
+                        //bmp = (Bitmap)Image.FromStream(ms);
+                        //dataGridViewProduct[1, ind].Value = img;
+                        //bmp.Dispose();
+                        //ms.Close();
+
                         Image img = Image.FromFile(path + "\\Товар_import\\" + item.ProductImage);
                         MemoryStream ms = new MemoryStream();
                         img.Save(ms, ImageFormat.Jpeg);
-                        bmp = (Bitmap)Image.FromStream(ms);
-                        dataGridViewProduct[1, ind].Value = img;
-                        bmp.Dispose();
+                        img.Dispose();
+                        Image newImg = Image.FromStream(ms);
+                        dataGridViewProduct[1, ind].Value = newImg;
+                        
                         ms.Close();
                     }
 
@@ -122,8 +131,8 @@ namespace OOOSportProducts
                     if (item.ProductQuantityInStock == 0)
                     {
                         quantity = "Нет в наличии";
-                        dataGridViewProduct[1, ind].Style.BackColor = Color.LightGray;
                         dataGridViewProduct[2, ind].Style.BackColor = Color.LightGray;
+                        dataGridViewProduct[3, ind].Style.BackColor = Color.LightGray;
                     }
                     else
                     {

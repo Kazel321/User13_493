@@ -17,8 +17,9 @@ namespace OOOSportProducts
     public partial class FormChangeProduct : Form
     {
         string article;
-        string path = Application.StartupPath;
+        string path = Application.StartupPath ;
         Bitmap bmp;
+        OpenFileDialog openFileDialog;
 
         public FormChangeProduct()
         {
@@ -41,6 +42,9 @@ namespace OOOSportProducts
             tableLayoutPanelTop.BackColor = Color.FromArgb(118, 227, 131);
             tableLayoutPanelMain.BackColor = Color.FromArgb(255, 255, 255);
             tableLayoutPanelBottom.BackColor = Color.FromArgb(118, 227, 131);
+
+            openFileDialog = new OpenFileDialog();
+            openFileDialog.Filter = "Image Files|*.jpg";
 
             var unit = Helper.DB.Unit.Select(x => x.UnitName).ToList();
             comboBoxUnit.DataSource = unit;
@@ -76,12 +80,13 @@ namespace OOOSportProducts
                     Image img = Image.FromFile(path + "\\Товар_import\\" + p.ProductImage);
                     MemoryStream ms = new MemoryStream();
                     img.Save(ms, ImageFormat.Jpeg);
-                    bmp = (Bitmap)Image.FromStream(ms);
-                    pictureBoxImage.Image = img;
-                    bmp.Dispose();
+                    img.Dispose();
+                    Image newImg = Image.FromStream(ms);
+                    pictureBoxImage.Image = newImg;
                     ms.Close();
                 }
             }
+            else buttonDelete.Enabled = false;
         }
 
         /// <summary>
@@ -92,6 +97,124 @@ namespace OOOSportProducts
         private void buttonReturn_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        /// <summary>
+        /// Сохранение товара
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonSave_Click(object sender, EventArgs e)
+        {
+            string article = textBoxArticle.Text;
+            string name = textBoxName.Text;
+            string stringCost = textBoxCost.Text;
+            string desc = textBoxDesc.Text;
+
+            if (String.IsNullOrEmpty(article) || String.IsNullOrEmpty(name) || String.IsNullOrEmpty(stringCost))
+            {
+                MessageBox.Show("Вы ввели не все данные", Helper.FormAction + " товара", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            double cost;
+            try
+            {
+                cost= Convert.ToDouble(stringCost);
+            }
+            catch
+            {
+                MessageBox.Show("Неверный формат цены", Helper.FormAction + " товара", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            if (cost < 0)
+            {
+                MessageBox.Show("Цена меньше нуля", Helper.FormAction + " товара", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            int maxSale = (int)numericUpDownDistountMax.Value;
+            int nowSale = (int)numericUpDownDiscountNow.Value;
+
+            if (nowSale > maxSale)
+            {
+                MessageBox.Show("Текущая скидка не может быть больше максимальной", Helper.FormAction + " товара", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            int unitId = comboBoxUnit.SelectedIndex + 1;
+            int manfId = comboBoxManf.SelectedIndex + 1;
+            int provId = comboBoxProv.SelectedIndex + 1;
+            int categoryId = comboBoxCategory.SelectedIndex + 1;
+
+            Product p;
+            if (Helper.FormAction == FormAction.Добавление)
+            {
+                p = new Product();
+            }
+            else p = Helper.DB.Product.Where(x => x.ProductArticleNumber == this.article).FirstOrDefault();
+
+            p.ProductArticleNumber = article;
+            p.ProductName = name;
+            p.UnitId = unitId;
+            p.ProductCost = cost;
+            p.ProductDiscountMax = (byte)maxSale;
+            p.ManufacturerId = manfId;
+            p.ProviderId = provId;
+            p.CategoryId = categoryId;
+            p.ProductDiscountNow = (byte?)nowSale;
+            p.ProductDescription = desc;
+            if (pictureBoxImage.Image == null) p.ProductImage = null;
+            else
+            {
+                Image saveImage = pictureBoxImage.Image;
+                if (Helper.FormAction == FormAction.Редактирование && File.Exists(path + "\\Товар_import\\" + article + ".jpg"))
+                {
+                    File.Delete(path + "\\Товар_import\\" + article + ".jpg");
+                }
+                File.Copy(newPath, path + "\\Товар_import\\" + article + ".jpg");
+                p.ProductImage = article + ".jpg";
+            }
+
+            if (Helper.FormAction == FormAction.Добавление)
+                Helper.DB.Product.Add(p);
+
+            Helper.DB.SaveChanges();
+
+            MessageBox.Show("Товар сохранен", Helper.FormAction + " товара", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Close();
+        }
+
+        String newPath;
+
+        /// <summary>
+        /// Выбор изображения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonSaveImage_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog.ShowDialog() == DialogResult.OK) 
+            {
+                Image img = Image.FromFile(openFileDialog.FileName);
+                MemoryStream ms = new MemoryStream();
+                img.Save(ms, ImageFormat.Jpeg);
+                img.Dispose();
+                Image newImg = Image.FromStream(ms);
+                pictureBoxImage.Image = newImg;
+                ms.Close();
+                newPath = openFileDialog.FileName;
+            }
+        }
+
+        /// <summary>
+        /// Удаление изображения
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void buttonDelImage_Click(object sender, EventArgs e)
+        {
+            pictureBoxImage.Image = null;
         }
     }
 }

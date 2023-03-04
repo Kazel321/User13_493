@@ -309,6 +309,7 @@
             this.buttonSave.TabIndex = 10;
             this.buttonSave.Text = "Сохранить";
             this.buttonSave.UseVisualStyleBackColor = true;
+            this.buttonSave.Click += new System.EventHandler(this.buttonSave_Click);
             // 
             // buttonDelete
             // 
@@ -358,6 +359,7 @@
             this.buttonSaveImage.TabIndex = 14;
             this.buttonSaveImage.Text = "Открыть";
             this.buttonSaveImage.UseVisualStyleBackColor = true;
+            this.buttonSaveImage.Click += new System.EventHandler(this.buttonSaveImage_Click);
             // 
             // buttonDelImage
             // 
@@ -369,6 +371,7 @@
             this.buttonDelImage.TabIndex = 15;
             this.buttonDelImage.Text = "Удалить";
             this.buttonDelImage.UseVisualStyleBackColor = true;
+            this.buttonDelImage.Click += new System.EventHandler(this.buttonDelImage_Click);
             // 
             // textBoxArticle
             // 
